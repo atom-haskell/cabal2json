@@ -1,10 +1,9 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE TupleSections, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
 import Data.List
-import Data.Bifunctor (first)
 import Distribution.Package
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
@@ -48,6 +47,7 @@ parseDotCabal gpkg
         mkobj' p t = mkobj p t . unUnqualComponentName . fst
         targets = concat [
             [mkobj "lib:" "library" name | isJust $ condLibrary gpkg]
+          , mkobj' "lib:" "library" `map` condSubLibraries gpkg
           , mkobj' "exe:" "executable" `map` condExecutables gpkg
           , mkobj' "test:" "test-suite" `map` condTestSuites gpkg
           , mkobj' "bench:" "benchmark" `map` condBenchmarks gpkg
@@ -68,9 +68,10 @@ getComponentFromFile gpkg file =
       lookupFile :: BIL.HasBuildInfo a2 => String
                       -> (a1 -> [Either ModuleName FilePath])
                       -> (a2 -> a1)
-                      -> (String, CondTree v c a2)
+                      -> String
+                      -> CondTree v c a2
                       -> [String]
-      lookupFile prefix fjoin ffirst (name', tree) =
+      lookupFile prefix fjoin ffirst name' tree =
         let
           tr = condTreeData tree
           mainmod = ffirst tr
@@ -85,21 +86,24 @@ getComponentFromFile gpkg file =
             modules
           in
             [prefix ++ name' | check]
+      lookupFile' p j f (n, t) = lookupFile p j f (unUnqualComponentName n) t
       list = concat $ concat [
                 flip map (maybeToList $ condLibrary gpkg) $
-                  lookupFile "lib:" (map Left) exposedModules . (name,)
+                  lookupFile "lib:" (map Left) exposedModules name
+              , flip map (condSubLibraries gpkg) $
+                  lookupFile' "lib:" (map Left) exposedModules
               , flip map (condExecutables gpkg) $
-                  lookupFile "exe:" (return . Right) modulePath . first unUnqualComponentName
+                  lookupFile' "exe:" (return . Right) modulePath
               , flip map (condTestSuites gpkg) $
                   let
                     ti (TestSuiteExeV10 _version fp) = [Right fp]
                     ti (TestSuiteLibV09 _version mp) = [Left mp]
                     ti (TestSuiteUnsupported _) = []
-                  in lookupFile "test:" id (ti . testInterface) . first unUnqualComponentName
+                  in lookupFile' "test:" id (ti . testInterface)
               , flip map (condBenchmarks gpkg) $
                   let
                     bi (BenchmarkExeV10 _version fp) = [Right fp]
                     bi (BenchmarkUnsupported _) = []
-                  in lookupFile "bench:" id (bi . benchmarkInterface) . first unUnqualComponentName
+                  in lookupFile' "bench:" id (bi . benchmarkInterface)
               ]
   in list
