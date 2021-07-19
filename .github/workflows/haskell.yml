@@ -37,7 +37,7 @@ jobs:
       run: cabal v2-update
     - name: Copy build config
       if: matrix.config
-      run: cp misc/${{ matrix.config }} ./cabal.project.local
+      run: cp misc/${{ matrix.config }} ./cabal.project
     - name: Cabal configure
       run: cabal v2-configure
     - uses: actions/cache@v2
@@ -56,10 +56,7 @@ jobs:
         rm -rvf .cabal-store/ghc-${{matrix.ghc}}/cabal2json-* || true
         rm -rvf .cabal-store/ghc-${{matrix.ghc}}/cabal2json-* || true
     - name: Install dependencies
-      run: |
-        cabal v2-install --installdir=".cabal-store/bin" alex
-        cabal v2-install --installdir=".cabal-store/bin" happy
-        cabal v2-build --only-dependencies --enable-tests
+      run: cabal v2-build --only-dependencies --enable-tests
     - name: Install
       shell: bash
       run: |

@@ -1,2 +1,3 @@
+packages: .
 package *
     split-sections: true
