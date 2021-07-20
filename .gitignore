@@ -1,2 +1,5 @@
 /dist-newstyle/
 *~
+/node_modules/
+/result
+/cabal2json.min.js
