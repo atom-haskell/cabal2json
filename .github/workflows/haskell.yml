@@ -17,6 +17,7 @@ jobs:
       with:
         name: cabal2json
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: npm ci
     - run: make
     - uses: actions/upload-artifact@v2
       with:
