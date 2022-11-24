@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
@@ -8,8 +8,8 @@ import Distribution.Package
 import Distribution.PackageDescription
 import Distribution.PackageDescription.Parsec (parseGenericPackageDescriptionMaybe)
 import Distribution.ModuleName (ModuleName, toFilePath)
-import Distribution.Types.UnqualComponentName
 import Distribution.Types.Version
+import Distribution.Utils.Path
 
 import System.Environment (getArgs)
 import System.FilePath
@@ -79,7 +79,7 @@ getComponentFromFile gpkg file =
           omod = otherModules info
           sourceDirs = hsSourceDirs info
           modules = map Left omod ++ fjoin mainmod
-          genFP f = map (normalise . (</> f)) sourceDirs
+          genFP f = map (normalise . (</> f) . getSymbolicPath) sourceDirs
           check = any (
             either (any (`isPrefixOf` file) . genFP . toFilePath)
                    (elem file . genFP))
