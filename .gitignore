@@ -3,3 +3,4 @@
 /node_modules/
 /result
 /cabal2json.min.js
+/cabal2json.wasm

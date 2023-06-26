@@ -1,4 +1,3 @@
 with-compiler: wasm32-wasi-ghc
 with-hc-pkg: wasm32-wasi-ghc-pkg
 packages: .
-allow-newer: ghc-prim
