@@ -21,11 +21,11 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: build-${{ runner.os }}
-        path: cabal2json.wasm
+        path: cabal2json.opt.wasm
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: cabal2json.wasm
+        files: cabal2json.opt.wasm
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
